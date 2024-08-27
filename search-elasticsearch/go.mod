@@ -1,6 +1,6 @@
 module github.com/gareth-johnstone/incubator-answer-plugins/search-elasticsearch
 
-go 1.19
+go 1.19.0
 
 require (
 	github.com/apache/incubator-answer v1.3.6
