@@ -1,4 +1,4 @@
-module github.com/apache/incubator-answer-plugins/search-elasticsearch
+module github.com/gareth-johnstone/incubator-answer-plugins/search-elasticsearch
 
 go 1.19
 
