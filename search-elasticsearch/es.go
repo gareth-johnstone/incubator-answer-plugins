@@ -142,9 +142,52 @@ func (s *SearchEngine) DeleteContent(ctx context.Context, contentID string) erro
 }
 
 func (s *SearchEngine) RegisterSyncer(ctx context.Context, syncer plugin.SearchSyncer) {
-	s.syncer = syncer
-	// TODO: Synchronization of already existing data through some strategy
+    s.syncer = syncer
+
+    // Start the synchronization process
+    go s.synchronizeExistingData(ctx)
 }
+
+func (s *SearchEngine) synchronizeExistingData(ctx context.Context) {
+    if s.Operator == nil {
+        log.Errorf("Elasticsearch client is not initialized.")
+        return
+    }
+
+    // Fetch all existing data
+    totalItems, err := s.syncer.TotalCount(ctx)
+    if err != nil {
+        log.Errorf("Failed to fetch total count of items: %v", err)
+        return
+    }
+
+    log.Infof("Starting synchronization of %d items.", totalItems)
+
+    // Define the batch size
+    batchSize := 100
+    for offset := 0; offset < totalItems; offset += batchSize {
+        // Fetch a batch of data
+        items, err := s.syncer.FetchBatch(ctx, offset, batchSize)
+        if err != nil {
+            log.Errorf("Failed to fetch batch of items: %v", err)
+            continue
+        }
+
+        // Index the fetched data in Elasticsearch
+        for _, item := range items {
+            content := CreateDocFromSearchContent(item.ObjectID, item)
+            err := s.Operator.SaveDoc(ctx, s.getIndexName(), item.ObjectID, content)
+            if err != nil {
+                log.Errorf("Failed to index document (ID: %s): %v", item.ObjectID, err)
+            }
+        }
+
+        log.Infof("Synchronized %d/%d items.", offset+len(items), totalItems)
+    }
+
+    log.Infof("Synchronization completed.")
+}
+
 
 func (s *SearchEngine) warpResult(resp *elastic.SearchResult) ([]plugin.SearchResult, int64, error) {
 	res := make([]plugin.SearchResult, 0)
