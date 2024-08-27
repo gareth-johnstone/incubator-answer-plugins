@@ -27,7 +27,7 @@ import (
 	"github.com/apache/incubator-answer-plugins/util"
 	"strings"
 
-	"github.com/gareth-johnstone/incubator-answer-plugins/i18n"
+	"github.com/gareth-johnstone/incubator-answer-plugins/search-elasticsearch/i18n"
 	"github.com/apache/incubator-answer/plugin"
 	"github.com/olivere/elastic/v7"
 	"github.com/segmentfault/pacman/log"
